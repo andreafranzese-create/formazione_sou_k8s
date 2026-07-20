@@ -16,18 +16,18 @@ def buildAndPushTag(Map args) {
     usernameVariable: 'USER',
     passwordVariable: 'PASS'
   )]) {
-  sh 'echo "$PASS" | podman login ' + args.registryUrl + ' -u "$USER" --password-stdin'
-  sh "podman build ${args.buildArgs} -t ${args.image}:${args.buildTag} -f ${args.dockerfileDir}/${args.dockerfileName} ${args.dockerfileDir}"
-  sh "podman push ${args.image}:${args.buildTag}"
+  sh 'echo "$PASS" | docker login ' + args.registryUrl + ' -u "$USER" --password-stdin'
+  sh "docker build ${args.buildArgs} -t ${args.image}:${args.buildTag} -f ${args.dockerfileDir}/${args.dockerfileName} ${args.dockerfileDir}"
+  sh "docker push ${args.image}:${args.buildTag}"
     
     if (args.pushLatest) {
-      sh "podman tag ${args.image}:${args.buildTag} ${args.image}:latest"
-      sh "podman push ${args.image}:latest"
-      sh "podman rmi --force ${args.image}:latest"
+      sh "docker tag ${args.image}:${args.buildTag} ${args.image}:latest"
+      sh "docker push ${args.image}:latest"
+      sh "docker rmi --force ${args.image}:latest"
     }
 
-  sh "podman rmi --force ${args.image}:${args.buildTag}"
-  sh "podman logout ${args.registryUrl}"
+  sh "docker rmi --force ${args.image}:${args.buildTag}"
+  sh "docker logout ${args.registryUrl}"
   return "${args.image}:${args.buildTag}"
   }
 }
@@ -36,6 +36,14 @@ pipeline {
   agent any
 
   stages {
+    stage('Avvia Docker daemon') {
+      steps {
+        sh '''
+        sudo dockerd > /tmp/dockerd.log 2>&1 &
+        sleep 10
+        '''
+      }
+    }
     stage('Build & Push') {
       steps {
         script {
