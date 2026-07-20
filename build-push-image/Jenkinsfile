@@ -39,7 +39,7 @@ pipeline {
     stage('Avvia Docker daemon') {
       steps {
         sh '''
-        sudo dockerd > /tmp/dockerd.log 2>&1 &
+        sudo dockerd --storage-driver=fuse-overlayfs > /tmp/dockerd.log 2>&1 &
         sleep 15
         '''
       }
