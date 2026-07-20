@@ -1,9 +1,9 @@
 def buildAndPushTag(Map args) {
 
   def defaults = [
-    urlRegistry: 'docker.io',
-    credRegistry: 'credenziali-dockehub',
-    dockerfileDir: "./",
+    registryUrl: 'docker.io',
+    credRegistry: 'credenziali-dockerhub',
+    dockerfileDir: "./build-push-image",
     dockerfileName: "Dockerfile",
     buildArgs: "",
     pushLatest: true
@@ -12,12 +12,10 @@ def buildAndPushTag(Map args) {
   args = defaults + args
 
   withCredentials([usernamePassword(
-    idCredentials: args.credRegistry,
+    credentialsId: args.credRegistry,
     usernameVariable: 'USER',
-    passwordVariablle: 'PASS'
-  )])
- 
-  {
+    passwordVariable: 'PASS'
+  )]) {
   sh 'echo "$PASS" | podman login ' + args.registryUrl + ' -u "$USER" --password-stdin'
   sh "podman build ${args.buildArgs} -t ${args.image}:${args.buildTag} -f ${args.dockerfileDir}/${args.dockerfileName} ${args.dockerfileDir}"
   sh "podman push ${args.image}:${args.buildTag}"
@@ -43,7 +41,7 @@ pipeline {
         script {
           def ref = buildAndPushTag(
             image: 'andry67/helloworld',
-            buildTag: "${env.BUILD_NUMBER}"
+            buildTag: "${env.BUILD_NUMBER}",
             pushLatest: false
           )
           echo "Immagine pubblicata: ${ref}"
