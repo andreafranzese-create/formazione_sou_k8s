@@ -17,7 +17,6 @@ def buildAndPushTag(Map args) {
     passwordVariable: 'PASS'
   )]) {
   sh 'echo "$PASS" | docker login ' + args.registryUrl + ' -u "$USER" --password-stdin'
-  sh 'export DOCKER_BUILDKIT=0'
   sh "docker build ${args.buildArgs} -t ${args.image}:${args.buildTag} -f ${args.dockerfileDir}/${args.dockerfileName} ${args.dockerfileDir}"
   sh "docker push ${args.image}:${args.buildTag}"
     
@@ -40,7 +39,7 @@ pipeline {
     stage('Avvia Docker daemon') {
       steps {
         sh '''
-        sudo dockerd --storage-driver=vfs > /tmp/dockerd.log 2>&1 &
+        sudo dockerd --storage-driver=fuse-overlayfs > /tmp/dockerd.log 2>&1 &
         sleep 15
         '''
       }
