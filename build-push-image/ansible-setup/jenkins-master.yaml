@@ -1,0 +1,54 @@
+---
+- name: Installazione Podman e configurazione rete 
+  hosts: server
+  become: true
+  tasks:
+    
+    - name: Installa podman
+      ansible.builtin.dnf:
+        name: podman
+        state: present
+
+    - name: Creazione rete
+      containers.podman.podman_network:
+        name: network_1
+        driver: bridge
+        subnet: 10.0.0.0/24
+        gateway: 10.0.0.1
+        state: present
+
+    - name: Crea il volume
+      containers.podman.podman_volume:
+        name: jenkins-data
+        state: present
+
+    - name: Pull dell'immagine
+      containers.podman.podman_image:
+        name: docker.io/jenkins/jenkins
+        tag: latest
+        state: present
+
+    - name: Avvia il container jankins con ip statico
+      containers.podman.podman_container:
+        name: jenkins-master
+        image: docker.io/jenkins/jenkins:latest
+        network: network_1
+        ip: 10.0.0.2
+        ports:
+          - "8080:8080"
+          - "50000:50000"
+        volumes:
+          - "jenkins-data:/var/jenkins_home:Z"
+        state: started
+
+    - name: Password iniziale dell'admin
+      ansible.builtin.command:
+        cmd: podman exec jenkins-master cat /var/jenkins_home/secrets/initialAdminPassword
+      register: password
+      changed_when: false
+      retries: 30
+      delay: 5
+
+    - name: Stampa la password
+      ansible.builtin.debug:
+        msg: "Password: {{ password.stdout }}"
