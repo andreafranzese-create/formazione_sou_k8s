@@ -1,0 +1,54 @@
+def buildAndPushTag(Map args) {
+
+  def defaults = [
+    urlRegistry: 'docker.io',
+    credRegistry: 'credenziali-dockehub',
+    dockerfileDir: "./",
+    dockerfileName: "Dockerfile",
+    buildArgs: "",
+    pushLatest: true
+  ]
+
+  args = defaults + args
+
+  withCredentials([usernamePassword(
+    idCredentials: args.credRegistry,
+    usernameVariable: 'USER',
+    passwordVariablle: 'PASS'
+  )])
+ 
+  {
+  sh 'echo "$PASS" | podman login ' + args.registryUrl + ' -u "$USER" --password-stdin'
+  sh "podman build ${args.buildArgs} -t ${args.image}:${args.buildTag} -f ${args.dockerfileDir}/${args.dockerfileName} ${args.dockerfileDir}"
+  sh "podman push ${args.image}:${args.buildTag}"
+    
+    if (args.pushLatest) {
+      sh "podman tag ${args.image}:${args.buildTag} ${args.image}:latest"
+      sh "podman push ${args.image}:latest"
+      sh "podman rmi --force ${args.image}:latest"
+    }
+
+  sh "podman rmi --force ${args.image}:${args.buildTag}"
+  sh "podman logout ${args.registryUrl}"
+  return "${args.image}:${args.buildTag}"
+  }
+}
+
+pipeline {
+  agent any
+
+  stages {
+    stage('Build & Push') {
+      steps {
+        script {
+          def ref = buildAndPushTag(
+            image: 'andry67/helloworld',
+            buildTag: "${env.BUILD_NUMBER}"
+            pushLatest: false
+          )
+          echo "Immagine pubblicata: ${ref}"
+        }
+      }
+    }
+  }
+}
