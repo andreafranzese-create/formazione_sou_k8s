@@ -2,11 +2,13 @@
 - name: Configurazione agent jenkins
   hosts: server
   become: true
+  vars_files:
+    - vault.yaml
 
   tasks:
     - name: Crea il volume dell'agent
       containers.podman.podman_volume:
-        name: jenkins-agent
+        name: jenkins-agent-data
         state: present
 
     - name: Avvia l'agent jenkins
@@ -17,12 +19,11 @@
         privileged: true
         network: network_1
         ip: "10.0.0.3"
-        privileged: true
         volumes:
           - "jenkins-agent-data:/home/jenkins/agent:Z"
         env:
           JENKINS_URL: "http://10.0.0.2:8080"
           JENKINS_AGENT_NAME: agent-1
-          JENKINS_SECRET: 318fb44abf260455efa58f3c89bea76f7bdbf726fa0a7fa323cc534ecf698d7a
+          JENKINS_SECRET: "{{ segreto }}"
           JENKINS_AGENT_WORKDIR: /home/jenkins/agent
         state: started
