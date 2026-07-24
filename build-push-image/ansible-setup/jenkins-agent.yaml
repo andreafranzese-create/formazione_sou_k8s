@@ -2,7 +2,9 @@
 - name: Configurazione agent jenkins
   hosts: server
   become: true
-
+  vars_files:
+    - vault.yaml
+    
   tasks:
     - name: Crea il volume dell'agent
       containers.podman.podman_volume:
