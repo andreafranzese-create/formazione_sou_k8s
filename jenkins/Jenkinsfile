@@ -1,33 +1,55 @@
 def buildAndPushTag(Map args) {
+
   def defaults = [
     registryUrl: 'docker.io',
     credRegistry: 'credenziali-dockerhub',
-    dockerfileDir: "./build-push-image",
-    dockerfileName: "Dockerfile",
-    buildArgs: "",
-    pushLatest: true
+    dockerfileDir: "./jenkins",
+    dockerfileName: "Dockerfile"
   ]
 
   args = defaults + args
+
+  env.IMAGE_NAME = "${args.image}:${args.buildTag}"
 
   withCredentials([usernamePassword(
     credentialsId: args.credRegistry,
     usernameVariable: 'USER',
     passwordVariable: 'PASS'
   )]) {
-  sh 'echo "$PASS" | podman login ' + args.registryUrl + ' -u "$USER" --password-stdin'
-  sh "podman build ${args.buildArgs} -t ${args.image}:${args.buildTag} -f ${args.dockerfileDir}/${args.dockerfileName} ${args.dockerfileDir}"
-  sh "podman push ${args.image}:${args.buildTag}"
-    
-    if (args.pushLatest) {
-      sh "podman tag ${args.image}:${args.buildTag} ${args.image}:latest"
-      sh "podman push ${args.image}:latest"
-      sh "podman rmi --force ${args.image}:latest"
+    try {
+      sh 'echo "$PASS" | podman login ' + args.registryUrl + ' -u "$USER" --password-stdin'
+      sh "podman build  -t ${args.image}:${args.buildTag} -f ${args.dockerfileDir}/${args.dockerfileName} ${args.dockerfileDir}"
+      sh "podman push ${args.image}:${args.buildTag}"
     }
 
-  sh "podman rmi --force ${args.image}:${args.buildTag}"
-  sh "podman logout ${args.registryUrl}"
-  return "${args.image}:${args.buildTag}"
+    finally {
+      sh "podman rmi --force ${args.image}:${args.buildTag}"
+      sh "podman logout ${args.registryUrl}"
+    }
+  }
+}
+
+def determineTag() {
+  def tag = sh(
+    script: 'git describe --tags --exact-match || true',
+    returnStdout: true
+  ).trim()
+
+  def branch = env.GIT_BRANCH.replaceAll('^origin/', '')
+    
+  def commitHash = sh(
+    script: 'git rev-parse --short HEAD',
+    returnStdout: true
+  ).trim()
+  
+  if (tag) {
+    return tag
+  } else if (branch == 'main') {
+    return 'latest'
+  } else if (branch == 'develop') {
+    return "develop-${commitHash}"
+  } else {
+    return "${branch}-${commitHash}"
   }
 }
 
@@ -35,15 +57,27 @@ pipeline {
   agent any
 
   stages {
+    stage('Ciao') {
+        steps {
+            echo "Ciao"
+        }
+    }
+    stage('getTag') {
+      steps {
+        script {
+          sh 'git fetch --tags'
+          env.TAG = determineTag()
+        }
+      }
+    }
     stage('Build & Push') {
       steps {
         script {
-          def ref = buildAndPushTag(
+            buildAndPushTag(
             image: 'andry67/helloworld',
-            buildTag: "${env.BUILD_NUMBER}",
-            pushLatest: false
+            buildTag: env.TAG         
           )
-          echo "Immagine pubblicata: ${ref}"
+          echo "Immagine pubblicata: ${env.IMAGE_NAME}"
         }
       }
     }
