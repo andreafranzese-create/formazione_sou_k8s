@@ -36,6 +36,8 @@
         image: docker.io/jenkins/jenkins:latest
         network: network_1
         ip: 10.0.0.2
+        security_opt:
+          - "label=disable"
         group_add:
           - "1234"
         ports:
