@@ -4,7 +4,6 @@ def buildAndPushTag(Map args) {
     registryUrl: 'docker.io',
     credRegistry: 'credenziali-dockerhub',
     dockerfileDir: "./jenkins",
-    dockerfileName: "Dockerfile"
   ]
 
   args = defaults + args
@@ -18,7 +17,7 @@ def buildAndPushTag(Map args) {
   )]) {
     try {
       sh 'echo "$PASS" | podman login ' + args.registryUrl + ' -u "$USER" --password-stdin'
-      sh "podman build  -t ${args.image}:${args.buildTag} -f ${args.dockerfileDir}/${args.dockerfileName} ${args.dockerfileDir}"
+      sh "podman build  -t ${args.image}:${args.buildTag} ${args.dockerfileDir}"
       sh "podman push ${args.image}:${args.buildTag}"
     }
 
