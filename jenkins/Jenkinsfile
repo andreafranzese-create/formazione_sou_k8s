@@ -56,11 +56,6 @@ pipeline {
   agent any
 
   stages {
-    stage('Ciao') {
-        steps {
-            echo "Ciao"
-        }
-    }
     stage('getTag') {
       steps {
         script {
@@ -75,8 +70,8 @@ pipeline {
             buildAndPushTag(
             image: 'andry67/helloworld',
             buildTag: env.TAG         
-          )
-          echo "Immagine pubblicata: ${env.IMAGE_NAME}"
+            )
+            echo "Immagine pubblicata: ${env.IMAGE_NAME}"
         }
       }
     }
