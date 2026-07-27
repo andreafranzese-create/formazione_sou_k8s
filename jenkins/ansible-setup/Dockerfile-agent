@@ -3,5 +3,6 @@ USER root
 RUN apt-get update && \
     apt-get install -y podman && \
     rm -rf /var/lib/apt/lists/*
+RUN ln -s $(which podman) /usr/local/bin/docker
 ENV CONTAINER_HOST=unix:///var/run/podman.sock
-USER jenkins
+USER jenkins             

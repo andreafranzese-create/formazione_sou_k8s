@@ -6,7 +6,6 @@
     - vault.yaml
 
   tasks:
-
     - name: Builda l'immagine dell'agent
       containers.podman.podman_image:
         name: jenkins-agent
@@ -14,11 +13,6 @@
         build:
           file: /root/Dockerfile-agent
         state: build
-
-    - name: Crea il volume dell'agent
-      containers.podman.podman_volume:
-        name: jenkins-agent-data
-        state: present
 
     - name: Avvia l'agent jenkins
       containers.podman.podman_container:
@@ -32,7 +26,7 @@
         group_add:
           - "1234"
         volumes:
-          - "jenkins-agent-data:/home/jenkins/agent"
+          - "/home/jenkins/agent:/home/jenkins/agent"
           - "/run/podman/podman.sock:/var/run/podman.sock"
         env:
           JENKINS_URL: "http://10.0.0.2:8080"
