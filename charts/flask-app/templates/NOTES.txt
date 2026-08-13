@@ -1,0 +1,16 @@
+L'applicazione "{{ .Values.name }}" è stata deployata con successo.
+
+Immagine rilasciata: {{ .Values.containers.image }}:{{ .Values.containers.tag }}
+Repliche richieste:  {{ .Values.replicas }}
+
+1. Controlla lo stato dei pod:
+   kubectl get pods --namespace {{ .Release.Namespace }} -l {{ .Values.LabelKey }}={{ .Values.LabelValue }}
+
+2. Guarda i log dell'applicazione:
+   kubectl logs --namespace {{ .Release.Namespace }} -l {{ .Values.LabelKey }}={{ .Values.LabelValue }} --tail=100 -f
+
+3. Per accedere all'applicazione in locale, fai il port-forward su un pod:
+   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l {{ .Values.LabelKey }}={{ .Values.LabelValue }} -o jsonpath="{.items[0].metadata.name}")
+   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:{{ .Values.containers.port }}
+
+   Poi visita: http://127.0.0.1:8080

@@ -1,0 +1,26 @@
+name: flask-app
+replicas: 2
+
+LabelKey: app
+LabelValue: flask-app
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+containers:
+  name: flask-app
+  image: andry67/helloworld
+  tag: latest
+  imagePullPolicy: IfNotPresent
+  port: 5000
+  protocol: TCP
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
