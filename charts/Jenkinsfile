@@ -18,8 +18,6 @@ pipeline {
   stages {
     stage('Deploy') {
       steps {
-        sh 'helm version'
-        sh 'kubectl get nodes'
         sh 'helm upgrade --install flask-app charts/flask-app -n formazione-sou'
       }
     }
