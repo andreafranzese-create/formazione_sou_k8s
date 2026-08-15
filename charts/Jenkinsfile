@@ -1,16 +1,26 @@
 pipeline {
   agent {
     kubernetes {
-      label 'kuber-heml'
+      yaml '''
+        apiVersion: v1
+        kind: Pod
+        spec:
+          serviceAccountName: jenkins-service
+          containers:
+          - name: helm
+            image: dtzar/helm-kubectl:latest
+            command: ["sleep"]
+            args: ["99d"]
+      '''
       defaultContainer 'helm'
     }
   }
   stages {
     stage('Deploy') {
       steps {
-          sh 'helm version'
-          sh 'kubectl get nodes'
-          sh 'helm upgrade --install flask-app charts/flask-app -n formazione-sou'
+        sh 'helm version'
+        sh 'kubectl get nodes'
+        sh 'helm upgrade --install flask-app charts/flask-app -n formazione-sou'
       }
     }
   }
