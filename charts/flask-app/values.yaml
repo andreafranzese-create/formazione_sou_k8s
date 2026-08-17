@@ -24,3 +24,26 @@ containers:
     limits:
       cpu: 500m
       memory: 256Mi
+
+ingress-nginx:
+  enabled: true
+  controller:
+    service:
+      type: NodePort
+    ingressClassResource:
+      name: nginx-flask-app
+      default: true
+
+Ingress:
+  IngressClassName: nginx
+  host: formazionesou.local
+  path: /
+  pathType: Prefix
+  service:
+    port: 80
+
+ClusterIP:
+  name: service-flask-app
+  servicePort: 80
+  targetPort: 5000
+
