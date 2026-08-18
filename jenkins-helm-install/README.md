@@ -74,8 +74,6 @@ Per autorizzare Jenkins a parlare con l'API del cluster è stato fornito sito il
    kubectl -n formazione-sou create token jenkins-service
    ```
 
-   *(oppure, su versioni che generano il Secret automaticamente, leggilo con `kubectl -n formazione-sou get secret <nome-secret> -o jsonpath='{.data.token}' | base64 -d`)*
-
 2. In **Manage Jenkins → Credentials**, aggiungi una credenziale di tipo **Secret text** incollando il token, e assegnale un ID.
 3. In **Manage Jenkins → Clouds → Kubernetes**, configura il Cloud usando quella credenziale come **Kubernetes service account credential** (o Credentials) per l'autenticazione verso l'API server, insieme all'URL del cluster.
 
