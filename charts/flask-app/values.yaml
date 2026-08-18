@@ -24,6 +24,16 @@ containers:
     limits:
       cpu: 500m
       memory: 256Mi
+  readinessProbe:
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+  livenessProbe:
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
 
 ingress-nginx:
   enabled: true
@@ -31,7 +41,7 @@ ingress-nginx:
     service:
       type: NodePort
     ingressClassResource:
-      name: nginx-flask-app
+      name: nginx
       default: true
 
 Ingress:

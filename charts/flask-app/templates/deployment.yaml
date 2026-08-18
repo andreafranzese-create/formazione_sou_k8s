@@ -10,9 +10,11 @@ spec:
   strategy:
     type: {{ .Values.strategy.type }}
 {{- if eq .Values.strategy.type "RollingUpdate" }}
+    {{- with .Values.strategy.rollingUpdate }}
     rollingUpdate:
-      maxSurge: {{ .Values.strategy.rollingUpdate.maxSurge }}
-      maxUnavailable: {{ .Values.strategy.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ .maxSurge }}
+      maxUnavailable: {{ .maxUnavailable }}
+    {{- end }}
 {{- end }}
   template:
     metadata:
@@ -20,22 +22,38 @@ spec:
         {{ .Values.LabelKey }}: {{ .Values.LabelValue }}
     spec:
       containers:
-        - name: {{ .Values.containers.name }}
-          image: "{{ .Values.containers.image }}:{{ .Values.containers.tag }}"
-          imagePullPolicy: {{ .Values.containers.imagePullPolicy }}
+        {{- with .Values.containers }}
+        - name: {{ .name }}
+          image: "{{ .image }}:{{ .tag }}"
+          imagePullPolicy: {{ .imagePullPolicy }}
           ports:
-            - containerPort: {{ .Values.containers.port }}
-              protocol: {{ .Values.containers.protocol }}
-          {{- if .Values.containers.resources }}
+            - containerPort: {{ .port }}
+              protocol: {{ .protocol }}
+          {{- with .resources }}
           resources:
-            {{- if .Values.containers.resources.requests }}
             requests:
-              cpu: {{ .Values.containers.resources.requests.cpu }}
-              memory: {{ .Values.containers.resources.requests.memory }}
-            {{- end }}
-            {{- if .Values.containers.resources.limits }}
+              cpu: {{ .requests.cpu }}
+              memory: {{ .requests.memory }}
             limits:
-              cpu: {{ .Values.containers.resources.limits.cpu }}
-              memory: {{ .Values.containers.resources.limits.memory }}
-            {{- end }}
+              cpu: {{ .limits.cpu }}
+              memory: {{ .limits.memory }}
           {{- end }}
+          {{- with .readinessProbe }}
+          readinessProbe:
+            httpGet:
+              path: {{ .path }}
+              port: {{ $.Values.containers.port }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            failureThreshold: {{ .failureThreshold }}
+          {{- end }}
+          {{- with .livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ .path }}
+              port: {{ $.Values.containers.port }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            failureThreshold: {{ .failureThreshold }}
+          {{- end }}
+        {{- end }}
