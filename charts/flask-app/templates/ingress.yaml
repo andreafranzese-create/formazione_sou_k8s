@@ -3,15 +3,17 @@ kind: Ingress
 metadata:
   name: {{ .Values.name }}
 spec:
-  ingressClassName: {{ .Values.Ingress.IngressClassName }}
+  {{- with .Values.Ingress }}
+  ingressClassName: {{ .IngressClassName }}
   rules:
-    - host: {{ .Values.Ingress.host }}
+    - host: {{ .host }}
       http:
         paths:
-          - path: {{ .Values.Ingress.path }}
-            pathType: {{ .Values.Ingress.pathType }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ .Values.ClusterIP.name }}
+                name: {{ $.Values.ClusterIP.name }}
                 port:
-                  number: {{ .Values.Ingress.service.port}}
+                  number: {{ .service.port}}
+  {{- end}}
