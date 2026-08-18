@@ -2,15 +2,41 @@ L'applicazione "{{ .Values.name }}" è stata deployata con successo.
 
 Immagine rilasciata: {{ .Values.containers.image }}:{{ .Values.containers.tag }}
 Repliche richieste:  {{ .Values.replicas }}
+Host Ingress:        http://{{ .Values.Ingress.host }}
 
 1. Controlla lo stato dei pod:
    kubectl get pods --namespace {{ .Release.Namespace }} -l {{ .Values.LabelKey }}={{ .Values.LabelValue }}
 
-2. Guarda i log dell'applicazione:
+2. Verifica che il rollout sia completato:
+   kubectl rollout status deployment/{{ .Values.name }} --namespace {{ .Release.Namespace }}
+
+3. Guarda i log dell'applicazione:
    kubectl logs --namespace {{ .Release.Namespace }} -l {{ .Values.LabelKey }}={{ .Values.LabelValue }} --tail=100 -f
 
-3. Per accedere all'applicazione in locale, fai il port-forward su un pod:
-   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l {{ .Values.LabelKey }}={{ .Values.LabelValue }} -o jsonpath="{.items[0].metadata.name}")
-   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:{{ .Values.containers.port }}
+4. Accedi all'applicazione tramite l'Ingress: http://{{ .Values.Ingress.host }}
 
-   Poi visita: http://127.0.0.1:8080
+   Stai usando minikube con il driver docker (colima), quindi il cluster gira dentro
+   una VM/container e l'IP del nodo non è raggiungibile direttamente dal Mac. Servono
+   due passaggi una tantum:
+
+   a) Mappa l'host "{{ .Values.Ingress.host }}" su localhost nel file /etc/hosts del Mac:
+
+      echo "127.0.0.1 {{ .Values.Ingress.host }}" > /etc/hosts
+
+   b) Esponi l'Ingress Controller sulla porta 80 del Mac con un port-forward
+      (lascia il terminale aperto; la porta 80 richiede sudo):
+
+      sudo kubectl --namespace {{ .Release.Namespace }} \
+        port-forward svc/{{ .Release.Name }}-ingress-nginx-controller 80:80
+
+   Poi visita:  http://{{ .Values.Ingress.host }}
+
+   In alternativa, se imposti il Service del controller come LoadBalancer, puoi tenere
+   attivo un tunnel persistente con:  minikube tunnel   (e saltare il port-forward).
+
+--------------------------------------------------------------------------------
+ GESTIONE DELLA RELEASE
+--------------------------------------------------------------------------------
+  • Stato della release:  helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  • Valori applicati:     helm get values {{ .Release.Name }} -n {{ .Release.Namespace }}
+  • Disinstalla:          helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
