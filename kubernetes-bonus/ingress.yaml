@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: lingue.local
+    http:
+      paths:
+      - path: /eng
+        pathType: Exact        
+        backend:
+          service:
+            name: hello-eng
+            port:
+              number: 5678
+      - path: /ita
+        pathType: Exact       
+        backend:
+          service:
+            name: hello-ita
+            port:
+              number: 5678

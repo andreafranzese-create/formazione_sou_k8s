@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-auth
+  labels:
+    app: nginx-auth
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.27
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: conf                      
+      mountPath: /etc/nginx/conf.d
+    - name: htpasswd                
+      mountPath: /etc/nginx/auth
+      readOnly: true
+  volumes:
+  - name: conf
+    configMap:
+      name: nginx-conf
+  - name: htpasswd
+    secret:
+      secretName: nginx-htpasswd
