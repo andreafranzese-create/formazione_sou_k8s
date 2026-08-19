@@ -49,7 +49,7 @@ helm install flask-app ./charts/flask-app
 
 Con i default viene rilasciata l'immagine `andry67/helloworld:latest`.
 
-### Deploy specificando il tag dell'immagine (requisito Step 3)
+### Deploy specificando il tag dell'immagine
 
 Il tag dell'immagine prodotta dalla pipeline si passa **in input** tramite `containers.tag`:
 
