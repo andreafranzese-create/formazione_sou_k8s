@@ -129,7 +129,7 @@ L'API server può cifrare i Secret prima di scriverli in etcd tramite un file di
   encryption*: le chiavi dati sono cifrate da una **KMS esterna** (AWS KMS, GCP
   KMS, Azure Key Vault, HashiCorp Vault via plugin).
 
-**2) **Evitare i Secret in chiaro fuori dal cluster:** Non cifrano etcd, risolvono un problema complementare:
+**2) Evitare i Secret in chiaro fuori dal cluster:** Non cifrano etcd, risolvono un problema complementare:
 
 - **Sealed Secrets**: committi in Git un `SealedSecret` cifrato in modo
   asimmetrico; solo il controller nel cluster lo decifra.
