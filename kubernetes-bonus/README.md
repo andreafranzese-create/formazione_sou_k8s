@@ -43,14 +43,14 @@ kubectl get secret db-cred -o yaml > new-secret.yaml
 
 Calcoliamo i base64 delle **nuove** credenziali:
 ```bash
-echo -n 'gianfranco'      | base64      # nuovo username
+echo -n 'gianfranco' | base64      # nuovo username
 echo -n 'password' | base64      # nuova password
 ```
 
 Puliamo il file dai campi runtime (`creationTimestamp`, `resourceVersion`,
 `uid`), cambiamo il `name` e sostituiamo i valori in `data:`
 
-#### new-secret.yaml
+#### new-secret.yaml
 
 ```yaml
 apiVersion: v1
