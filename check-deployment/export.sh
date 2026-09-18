@@ -1,33 +1,35 @@
 #!/usr/bin/env bash
 
-FILE=export.yaml
+FILE=export.json
 TOKEN=$(kubectl create token cluster-reader -n formazione-sou)
+SERVER=$(kubectl config view --minify -o jsonpath='{.clusters[].cluster.server}')
+CA="./ca.crt"
 
-if kubectl --token="$TOKEN" get deployment flask-app -n formazione-sou -o yaml > "$FILE"; then
+kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}' | base64 --decode > ca.crt
+
+if kubectl --token="$TOKEN" --server="$SERVER" --certificate-authority="$CA" get deployment flask-app -n formazione-sou -o json > "$FILE"; then
     echo "Export eseguito con successo"
 else
     echo "Errore, export non riuscito"
     exit 1
 fi
 
-if ! grep -q "readinessProbe" "$FILE"; then
-    echo "Errore, non è presente la readinessProbe" 
-    exit 2
-fi
+check_campi() {
+    local campo="$1"
+    local etichetta="$2"
+    local exit_code="$3"
 
-if ! grep -q "livenessProbe" "$FILE"; then
-    echo "Errore, non è presente la livenessProbe" 
-    exit 3
-fi
+    if jq -e "[.spec.template.spec.containers[] | $campo] | any(. == null)" "$FILE" > /dev/null; then
+        echo "Errore, manca $etichetta in almeno un container"
+        exit "$exit_code"
+    fi
+}
 
-if ! grep -q "limits" "$FILE"; then
-    echo "Errore, non sono presenti i limits"
-    exit 4
-fi
-
-if ! grep -q "requests" "$FILE"; then
-    echo "Errore, non sono presenti i requests" 
-    exit 5
-fi
+check_campi ".readinessProbe" "la readinessProbe" 2
+check_campi ".livenessProbe" "la livenessProbe" 3
+check_campi ".resources.limits.cpu" "i limits cpu" 4
+check_campi ".resources.limits.memory" "i limits memory" 5
+check_campi ".resources.requests.cpu" "i requests cpu" 6
+check_campi ".resources.requests.memory" "i requests memory" 7
 
 echo "Tutti gli attributi sono presenti"
