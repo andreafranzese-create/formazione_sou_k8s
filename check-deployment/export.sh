@@ -15,9 +15,9 @@ else
 fi
 
 check_campi() {
-    local campo="$1"
-    local etichetta="$2"
-    local exit_code="$3"
+    campo="$1"
+    etichetta="$2"
+    exit_code="$3"
 
     if jq -e "[.spec.template.spec.containers[] | $campo] | any(. == null)" "$FILE" > /dev/null; then
         echo "Errore, manca $etichetta in almeno un container"
