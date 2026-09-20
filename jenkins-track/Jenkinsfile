@@ -3,7 +3,7 @@ def buildAndPushTag(Map args) {
   def defaults = [
     registryUrl: 'docker.io',
     credRegistry: 'credenziali-dockerhub',
-    dockerfileDir: "./jenkins",
+    dockerfileDir: "./jenkins"
   ]
 
   args = defaults + args
@@ -45,8 +45,6 @@ def determineTag() {
     return tag
   } else if (branch == 'main') {
     return 'latest'
-  } else if (branch == 'develop') {
-    return "develop-${commitHash}"
   } else {
     return "${branch}-${commitHash}"
   }

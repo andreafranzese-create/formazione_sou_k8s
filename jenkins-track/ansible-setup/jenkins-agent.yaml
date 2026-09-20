@@ -26,7 +26,6 @@
         group_add:
           - "1234"
         volumes:
-          - "/home/jenkins/agent:/home/jenkins/agent"
           - "/run/podman/podman.sock:/var/run/podman.sock"
         env:
           JENKINS_URL: "http://10.0.0.2:8080"

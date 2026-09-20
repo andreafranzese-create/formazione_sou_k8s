@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+    
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['PRODUCTION', 'DEVELOPMENT'])
+    }
+    
+    environment {
+        GIORNO = new Date().format('u')
+    }
+    
+    stages {
+        stage('Warning') {
+            when {
+                expression { return (env.GIORNO as Integer) >= 6 }
+            }
+            steps {
+                error("E'sconsigliato eseguire build nel weekend!")
+            }
+        }
+        stage('PRODUCTION') {
+            when {
+                expression { return params.ENVIRONMENT == 'PRODUCTION' }
+            }
+            steps {
+                echo "La variabile ENVIROMENT è uguale a ${params.ENVIRONMENT}"
+            }
+        }
+        stage('DEVELOPMENT') {
+            when {
+                expression { return params.ENVIRONMENT == 'DEVELOPMENT' }
+            }
+            steps {
+                echo "La variabile ENVIROMENT è uguale a ${params.ENVIRONMENT}"
+            }
+        }
+    }
+}
