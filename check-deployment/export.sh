@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+check_campi() {
+    campo="$1"
+    etichetta="$2"
+    container=$(jq -r "[.spec.template.spec.containers[] | select($campo == null) | .name] | join(\", \")" "$FILE")
+
+    if [[ -n "$container" ]]; then
+        errori+=("$etichetta nei container: $container")
+    fi
+}
+
+checks=( ".readinessProbe readinessProbe" ".livenessProbe livenessProbe" ".resources.limits limits" ".resources.requests requests" )
+errori=()
+
 FILE=export.json
 TOKEN=$(kubectl create token cluster-reader -n formazione-sou)
 SERVER=$(kubectl config view --minify -o jsonpath='{.clusters[].cluster.server}')
@@ -14,22 +27,16 @@ else
     exit 1
 fi
 
-check_campi() {
-    campo="$1"
-    etichetta="$2"
-    exit_code="$3"
+for i in "${checks[@]}"; do
+    check_campi $i
+done
 
-    if jq -e "[.spec.template.spec.containers[] | $campo] | any(. == null)" "$FILE" > /dev/null; then
-        echo "Errore, manca $etichetta in almeno un container"
-        exit "$exit_code"
-    fi
-}
-
-check_campi ".readinessProbe" "la readinessProbe" 2
-check_campi ".livenessProbe" "la livenessProbe" 3
-check_campi ".resources.limits.cpu" "i limits cpu" 4
-check_campi ".resources.limits.memory" "i limits memory" 5
-check_campi ".resources.requests.cpu" "i requests cpu" 6
-check_campi ".resources.requests.memory" "i requests memory" 7
-
-echo "Tutti gli attributi sono presenti"
+if [ ${#errori[@]} -eq 0 ]; then
+    echo "Tutti gli attributi sono presenti"
+else
+    echo "Non è presente l'attributo:"
+    for e in "${errori[@]}"; do
+        echo "- $e"
+    done
+    exit 2
+fi
